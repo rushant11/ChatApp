@@ -1,15 +1,14 @@
 import React from "react";
 import {
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import ImageBackground from "../components/ImageBackground";
-import { colors } from "../../utils/colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { ImageBackground } from "@components";
+import { colors } from "@theme";
 
 const RegisterScreen = ({ navigation }) => {
   const handleNavigation = () => {
