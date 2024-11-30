@@ -1,11 +1,19 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { Image, StyleSheet, Text, View } from "react-native";
+import CustomHeader from "src/components/CustomHeader";
 
 const HomeScreen = () => {
   return (
-    <View>
-      <Text>HomeScreen</Text>
-    </View>
+    <>
+      <StatusBar backgroundColor={"white"} style="dark" />
+
+      <View style={{ flex: 1, marginTop: 50 }}>
+        <View style={{ paddingHorizontal: 15 }}>
+          <CustomHeader />
+        </View>
+      </View>
+    </>
   );
 };
 

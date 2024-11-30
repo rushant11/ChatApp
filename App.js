@@ -5,7 +5,22 @@ import RegisterScreen from "./src/screens/auth/RegisterScreen";
 import ChatScreen from "./src/screens/main/ChatScreen";
 import AddUser from "./src/screens/main/AddUser";
 import HomeScreen from "./src/screens/main/HomeScreen";
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyBEcW07iVen1D78xpyc3pP54m0A1bYOjwo",
+  authDomain: "chatapp-4055f.firebaseapp.com",
+  databaseURL: "https://chatapp-4055f.firebaseio.com",
+  projectId: "chatapp-4055f",
+  storageBucket: "chatapp-4055f.appspot.com",
+  appId: "1:285046376547:ios:145a14b1b256addf905056",
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
 export default function App() {
   const Stack = createNativeStackNavigator();
 

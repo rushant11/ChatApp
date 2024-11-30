@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,17 +9,57 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { ImageBackground } from "@components";
 import { colors } from "@theme";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "App";
+import { collection, addDoc } from "firebase/firestore";
 
 const RegisterScreen = ({ navigation }) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const handleNavigation = () => {
     navigation.reset({
-      index: 1,
-      routes: [
-        {
-          name: "Login",
-        },
-      ],
+      index: 0,
+      routes: [{ name: "Login" }],
     });
+  };
+
+  const addToFireStore = async () => {
+    try {
+      const docRef = await addDoc(collection(db, "users"), {
+        username: name,
+        email: email,
+        password: password,
+      });
+      console.log("Document written with ID: ", docRef.id);
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+  };
+
+  const handleRegisterUser = () => {
+    if (name && email && password) {
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          addToFireStore();
+          handleNavigation();
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+
+          if (errorCode === "auth/email-already-in-use") {
+            console.log("That email address is already in use!");
+          } else if (errorCode === "auth/invalid-email") {
+            console.log("That email address is invalid!");
+          } else {
+            console.log(errorMessage);
+          }
+        });
+    } else {
+      console.log("Please fill all the fields!");
+    }
   };
 
   return (
@@ -29,14 +69,31 @@ const RegisterScreen = ({ navigation }) => {
         <KeyboardAwareScrollView
           style={{ marginVertical: 10 }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps={"handled"}
         >
           <Text style={styles.login}>Sign Up</Text>
           <View style={styles.credContainer}>
-            <TextInput style={styles.input} placeholder="Full Name" />
-            <TextInput style={styles.input} placeholder="Email" />
-            <TextInput style={styles.input} placeholder="Password" />
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              style={styles.input}
+              placeholder="Full Name"
+            />
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              style={styles.input}
+              placeholder="Email"
+              keyboardType="email-address"
+            />
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              style={styles.input}
+              placeholder="Password"
+            />
           </View>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity onPress={handleRegisterUser} style={styles.button}>
             <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
           <View style={styles.secondaryText}>

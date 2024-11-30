@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,10 +10,18 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { ImageBackground } from "@components";
 import { dynamicSize, getFontSize } from "@utils";
 import { colors } from "@theme";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "App";
 
 const LoginScreen = ({ navigation }) => {
-  const handleNavigation = () => {
-    navigation.navigate("Register");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLoginUser = () => {
+    signInWithEmailAndPassword(auth, email, password).then(
+      (user) => console.log("sign In", user),
+      navigation.navigate("Home")
+    );
   };
 
   return (
@@ -28,16 +36,26 @@ const LoginScreen = ({ navigation }) => {
           >
             <Text style={styles.login}>Log In</Text>
             <View style={styles.credContainer}>
-              <TextInput style={styles.input} placeholder="Email" />
-              <TextInput style={styles.input} placeholder="Password" />
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                style={styles.input}
+                placeholder="Email"
+              />
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                style={styles.input}
+                placeholder="Password"
+              />
             </View>
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity onPress={handleLoginUser} style={styles.button}>
               <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
             <View style={styles.secondaryText}>
               <Text>Didn't have an account?</Text>
               <Text
-                onPress={handleNavigation}
+                onPress={() => navigation.navigate("Register")}
                 style={{ color: colors.PrimaryText }}
               >
                 Sign up here

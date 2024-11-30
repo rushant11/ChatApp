@@ -14,15 +14,29 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.priyankapp1308.ChatApp"
+      "bundleIdentifier": "com.priyankapp1308.ChatApp",
+      "googleServicesFile": "./ios/GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.priyankapp1308.ChatApp"
+      "package": "com.priyankapp1308.ChatApp",
+      "googleServicesFile": "./android/app/google-services.json"
     },
+    // "plugins": [
+    //   "@react-native-firebase/app",
+    //   "@react-native-firebase/auth",
+    //   [
+    //     "expo-build-properties",
+    //     {
+    //       "ios": {
+    //         "useFrameworks": "static"
+    //       }
+    //     }
+    //   ]
+    // ],
     "web": {
       "favicon": "./assets/favicon.png"
     }
