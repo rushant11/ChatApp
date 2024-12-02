@@ -13,15 +13,17 @@ import { colors } from "@theme";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "App";
 
-const LoginScreen = ({ navigation }) => {
+export const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLoginUser = () => {
-    signInWithEmailAndPassword(auth, email, password).then(
-      (user) => console.log("sign In", user),
-      navigation.navigate("Home")
-    );
+    if (email && password) {
+      signInWithEmailAndPassword(auth, email, password).then(
+        (user) => console.log("sign In", user),
+        navigation.replace("Home")
+      );
+    }
   };
 
   return (
@@ -67,8 +69,6 @@ const LoginScreen = ({ navigation }) => {
     </>
   );
 };
-
-export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: {

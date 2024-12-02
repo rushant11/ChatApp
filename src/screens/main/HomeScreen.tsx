@@ -1,22 +1,26 @@
 import React from "react";
 import { StatusBar } from "expo-status-bar";
-import { Image, StyleSheet, Text, View } from "react-native";
-import CustomHeader from "src/components/CustomHeader";
+import { StyleSheet, View } from "react-native";
+import { CustomHeader } from "@components";
+import { useNavigation } from "@react-navigation/native";
+import { OuterChatList } from "src/components/OuterChatList";
 
-const HomeScreen = () => {
+export const HomeScreen = () => {
+  const navigation = useNavigation();
+
   return (
     <>
       <StatusBar backgroundColor={"white"} style="dark" />
-
       <View style={{ flex: 1, marginTop: 50 }}>
-        <View style={{ paddingHorizontal: 15 }}>
-          <CustomHeader />
-        </View>
+        <CustomHeader
+          onPress={() => navigation.navigate("AddUser")}
+          headerName="Chats"
+          leftIcon={true}
+        />
+        {/* <OuterChatList /> */}
       </View>
     </>
   );
 };
-
-export default HomeScreen;
 
 const styles = StyleSheet.create({});

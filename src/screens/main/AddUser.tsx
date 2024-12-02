@@ -1,14 +1,17 @@
-import { StyleSheet, Text, View } from "react-native";
 import React from "react";
+import { ContactsList, CustomHeader } from "@components";
+import { dynamicSize } from "@utils";
+import { StatusBar } from "expo-status-bar";
+import { View } from "react-native";
 
-const AddUser = () => {
+export const AddUser = () => {
   return (
-    <View>
-      <Text>AddUser</Text>
-    </View>
+    <>
+      <StatusBar backgroundColor={"white"} style="dark" />
+      <View style={{ flex: 1, marginTop: dynamicSize(50) }}>
+        <CustomHeader headerName="Contacts" leftIcon={false} />
+        <ContactsList />
+      </View>
+    </>
   );
 };
-
-export default AddUser;
-
-const styles = StyleSheet.create({});

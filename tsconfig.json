@@ -8,7 +8,7 @@
       "@components": ["./src/components/index.ts"],
       "@screens": ["./src/screens/index.ts"],
       "@constants": ["./src/constants/index.ts"],
-      // "@Icons": ["./src/assets/Icons/index.ts"],
+      "@Icons": ["./src/assets/Icons/svg.ts"],
       "@Images": ["./src/assets/Images/index.ts"],
       "@theme": ["./src/theme/index.ts"],
       "@hooks": ["./src/hooks/index.ts"],

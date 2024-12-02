@@ -1,10 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import LoginScreen from "./src/screens/auth/LoginScreen";
-import RegisterScreen from "./src/screens/auth/RegisterScreen";
-import ChatScreen from "./src/screens/main/ChatScreen";
-import AddUser from "./src/screens/main/AddUser";
-import HomeScreen from "./src/screens/main/HomeScreen";
+import { AddUser, ChatScreen, HomeScreen, LoginScreen, RegisterScreen } from "@screens";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -26,7 +22,10 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName="Login"
+      >
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />

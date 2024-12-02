@@ -13,7 +13,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "App";
 import { collection, addDoc } from "firebase/firestore";
 
-const RegisterScreen = ({ navigation }) => {
+export const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +29,7 @@ const RegisterScreen = ({ navigation }) => {
     try {
       const docRef = await addDoc(collection(db, "users"), {
         username: name,
-        email: email,
+        email: email.toLocaleLowerCase(),
         password: password,
       });
       console.log("Document written with ID: ", docRef.id);
@@ -110,8 +110,6 @@ const RegisterScreen = ({ navigation }) => {
     </View>
   );
 };
-
-export default RegisterScreen;
 
 const styles = StyleSheet.create({
   container: {
