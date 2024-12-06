@@ -134,8 +134,6 @@ export const ChatScreen = () => {
         user={{
           _id: auth?.currentUser?.email,
           name: userInfo.username,
-          readCount: 0,
-          unreadCount: 0,
         }}
       />
     </View>

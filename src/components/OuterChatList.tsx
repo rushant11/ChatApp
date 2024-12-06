@@ -61,6 +61,7 @@ export const OuterChatList = () => {
 
       for (const doc of querySnapshot.docs) {
         const data = doc.data();
+        console.log("🚀 ~ unsubscribe ~ data:", data);
         const participants = data.participants;
 
         const recipientEmail = participants.find(
@@ -98,10 +99,6 @@ export const OuterChatList = () => {
     <FlatList
       data={chattedUsers}
       renderItem={({ item, index }) => {
-        console.log(
-          "🚀 ~ OuterChatList ~ item.lastmessage:",
-          item?.lastMessage
-        );
         return (
           <TouchableOpacity
             onPress={() => {
@@ -138,7 +135,7 @@ export const OuterChatList = () => {
                     <Text
                       style={{ fontSize: getFontSize(13), color: colors.white }}
                     >
-                      {'0'}
+                      {item?.unreadCount}
                     </Text>
                   </View>
                 )}
