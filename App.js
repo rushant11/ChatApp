@@ -4,6 +4,7 @@ import { AddUser, ChatScreen, HomeScreen, LoginScreen, RegisterScreen } from "@s
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import SplashScreen from "src/screens/auth/SplashScreen";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBEcW07iVen1D78xpyc3pP54m0A1bYOjwo",
@@ -24,8 +25,9 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName="Login"
+        initialRouteName="Splash"
       >
+        <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />

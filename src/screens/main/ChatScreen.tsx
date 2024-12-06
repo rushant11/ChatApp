@@ -18,20 +18,23 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { useRoute } from "@react-navigation/native";
+import { RouteProp, useRoute } from "@react-navigation/native";
+
+type ChatScreenRouteParams = {
+  username: string;
+  recipient_email: string;
+};
 
 export const ChatScreen = () => {
-  const route = useRoute();
+  const route = useRoute<RouteProp<Record<string, ChatScreenRouteParams>>>();
   const { username, recipient_email } = route?.params;
-  console.log(
-    "🚀 ~ ChatScreen ~ username & recipient_email:",
-    username,
-    recipient_email
-  );
 
   const [userInfo, setUserInfo] = useState<any>({});
   const [messages, setMessages] = useState([]);
-  console.log("🚀 ~ ChatScreen ~ messages:", messages);
+  console.log("🚀 ~ ChatScreen ~ messages:", JSON.stringify(messages));
+
+  const [senderName, setSenderName] = useState("");
+  console.log("🚀 ~ ChatScreen ~ senderName:", senderName);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -45,6 +48,11 @@ export const ChatScreen = () => {
         const loggedInUser = usersData.find(
           (user) => user.email === auth?.currentUser?.email
         );
+        console.log("🚀 ~ fetchUserInfo ~ loggedInUser:", loggedInUser);
+
+        const sender_name = loggedInUser.username;
+        console.log("🚀 ~ fetchUserInfo ~ sender_name:", sender_name);
+        setSenderName(sender_name);
 
         if (loggedInUser) {
           setUserInfo(loggedInUser);
@@ -68,9 +76,7 @@ export const ChatScreen = () => {
       const fetchedMessages = snapshot.docs.map((doc) => ({
         _id: doc.id,
         ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-        sender: doc.data().sender,
-        recipient: doc.data().recipient,
+        createdAt: doc.data().createdAt?.toDate(), // Ensure Firestore's timestamp is converted
       }));
 
       const filteredMessages = fetchedMessages.filter(
@@ -81,8 +87,18 @@ export const ChatScreen = () => {
             message.recipient === auth?.currentUser?.email)
       );
 
-      console.log("🚀 ~ unsubscribe ~ filteredMessages:", filteredMessages);
-      setMessages(filteredMessages);
+      // Format messages for GiftedChat
+      const formattedMessages = filteredMessages.map((message) => ({
+        _id: message._id,
+        text: message.text,
+        createdAt: message.createdAt,
+        user: {
+          _id: message.sender,
+          name: message.user?.name || "Unknown",
+        },
+      }));
+
+      setMessages(formattedMessages);
     });
 
     return () => unsubscribe();
@@ -90,15 +106,17 @@ export const ChatScreen = () => {
 
   const onSend = useCallback(
     (messages = []) => {
-      const { _id, text, user } = messages[0];
+      const { _id, text, user, createdAt } = messages[0];
+
       addDoc(collection(db, "chats"), {
         _id,
-        createdAt: new Date(),
         text,
-        user,
-        sender: auth?.currentUser?.email,
-        recipient: recipient_email,
-        participants: [auth?.currentUser?.email, recipient_email],
+        createdAt, // Use GiftedChat's createdAt to keep consistent
+        user, // This contains the sender's user info
+        sender: auth?.currentUser?.email, // Sender's email
+        recipient: recipient_email, // Recipient's email
+        participants: [auth?.currentUser?.email, recipient_email], // Both participants
+        lastMessage: text, // Update last message
       })
         .then(() => {
           console.log("Message sent successfully");

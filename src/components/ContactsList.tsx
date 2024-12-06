@@ -18,7 +18,6 @@ import { useNavigation } from "@react-navigation/native";
 export const ContactsList = () => {
   const navigation = useNavigation();
   const [otherUserInfo, setOtherUserInfo] = useState<any>({});
-  console.log("🚀 ~ ContactsList ~ otherUserInfo:", otherUserInfo);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,7 +27,6 @@ export const ContactsList = () => {
         querySnapshot.forEach((doc) => {
           usersData.push({ id: doc.id, ...doc.data() });
         });
-        console.log("🚀 ~ fetchData ~ usersData:", usersData);
 
         const otherUsers = usersData.filter(
           (user) => user.email !== auth?.currentUser?.email
@@ -51,7 +49,6 @@ export const ContactsList = () => {
           <>
             <TouchableOpacity
               onPress={() => {
-                console.log("item.id", item.id);
                 navigation.navigate("Chat", {
                   username: item.username,
                   recipient_email: item.email,

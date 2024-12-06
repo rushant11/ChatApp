@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Alert,
   StyleSheet,
   Text,
   TextInput,
@@ -12,17 +13,31 @@ import { dynamicSize, getFontSize } from "@utils";
 import { colors } from "@theme";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "App";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLoginUser = () => {
+  const handleLoginUser = async () => {
     if (email && password) {
-      signInWithEmailAndPassword(auth, email, password).then(
-        (user) => console.log("sign In", user),
-        navigation.replace("Home")
-      );
+      try {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
+        if (user) {
+          await AsyncStorage.setItem("user", user.uid);
+          navigation.replace("Home");
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        Alert.alert("Login failed. Please try again.");
+      }
+    } else {
+      Alert.alert("Please fill all the details.");
     }
   };
 
