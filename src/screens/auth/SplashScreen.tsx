@@ -1,23 +1,22 @@
 import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useStore } from "src/zustand/useStore";
 
 const SplashScreen = ({ navigation }) => {
-  useEffect(() => {
-    const checkUser = async () => {
-      const isUSerUid = await AsyncStorage.getItem("user");
-      if (isUSerUid !== null) {
-        setTimeout(() => {
-          navigation.replace("Home");
-        }, 1500);
-      } else {
-        setTimeout(() => {
-          navigation.replace("Login");
-        }, 1500);
-      }
-    };
+  const { userEmail } = useStore();
+  console.log("🚀 ~ HomeScreen ~ userEmail:", userEmail);
 
-    checkUser();
+  useEffect(() => {
+    setTimeout(() => {
+      const checkUser = async () => {
+        if (userEmail !== null) {
+          navigation.replace("Home");
+        } else {
+          navigation.replace("Login");
+        }
+      };
+      checkUser();
+    }, 1500);
   }, []);
 
   return (

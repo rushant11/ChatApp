@@ -19,6 +19,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { RouteProp, useRoute } from "@react-navigation/native";
+import { useStore } from "src/zustand/useStore";
 
 type ChatScreenRouteParams = {
   username: string;
@@ -28,13 +29,9 @@ type ChatScreenRouteParams = {
 export const ChatScreen = () => {
   const route = useRoute<RouteProp<Record<string, ChatScreenRouteParams>>>();
   const { username, recipient_email } = route?.params;
-
+  const { messages, setMessages, setIsChatSelected } = useStore();
   const [userInfo, setUserInfo] = useState<any>({});
-  const [messages, setMessages] = useState([]);
-  console.log("🚀 ~ ChatScreen ~ messages:", JSON.stringify(messages));
-
-  const [senderName, setSenderName] = useState("");
-  console.log("🚀 ~ ChatScreen ~ senderName:", senderName);
+  console.log("🚀 ~ ChatScreen ~ messages:", messages);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -49,10 +46,6 @@ export const ChatScreen = () => {
           (user) => user.email === auth?.currentUser?.email
         );
         console.log("🚀 ~ fetchUserInfo ~ loggedInUser:", loggedInUser);
-
-        const sender_name = loggedInUser.username;
-        console.log("🚀 ~ fetchUserInfo ~ sender_name:", sender_name);
-        setSenderName(sender_name);
 
         if (loggedInUser) {
           setUserInfo(loggedInUser);
@@ -76,7 +69,7 @@ export const ChatScreen = () => {
       const fetchedMessages = snapshot.docs.map((doc) => ({
         _id: doc.id,
         ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(), // Ensure Firestore's timestamp is converted
+        createdAt: doc.data().createdAt?.toDate(),
       }));
 
       const filteredMessages = fetchedMessages.filter(
@@ -87,7 +80,6 @@ export const ChatScreen = () => {
             message.recipient === auth?.currentUser?.email)
       );
 
-      // Format messages for GiftedChat
       const formattedMessages = filteredMessages.map((message) => ({
         _id: message._id,
         text: message.text,
@@ -111,15 +103,16 @@ export const ChatScreen = () => {
       addDoc(collection(db, "chats"), {
         _id,
         text,
-        createdAt, // Use GiftedChat's createdAt to keep consistent
-        user, // This contains the sender's user info
-        sender: auth?.currentUser?.email, // Sender's email
-        recipient: recipient_email, // Recipient's email
-        participants: [auth?.currentUser?.email, recipient_email], // Both participants
-        lastMessage: text, // Update last message
+        createdAt,
+        user,
+        sender: auth?.currentUser?.email,
+        recipient: recipient_email,
+        participants: [auth?.currentUser?.email, recipient_email],
+        lastMessage: text,
       })
         .then(() => {
           console.log("Message sent successfully");
+          setIsChatSelected(true);
         })
         .catch((error) => {
           console.error("Error sending message:", error);
@@ -135,12 +128,14 @@ export const ChatScreen = () => {
         messages={messages}
         showAvatarForEveryMessage={true}
         showUserAvatar={true}
-        loadEarlier
+        listViewProps={{ showsVerticalScrollIndicator: false }}
         placeholder="Send a message"
         onSend={(messages) => onSend(messages)}
         user={{
           _id: auth?.currentUser?.email,
           name: userInfo.username,
+          readCount: 0,
+          unreadCount: 0,
         }}
       />
     </View>

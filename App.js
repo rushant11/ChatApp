@@ -1,8 +1,19 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { AddUser, ChatScreen, HomeScreen, LoginScreen, RegisterScreen } from "@screens";
+import {
+  AddUser,
+  ChatScreen,
+  HomeScreen,
+  LoginScreen,
+  RegisterScreen,
+} from "@screens";
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  initializeAuth,
+  getReactNativePersistence,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import SplashScreen from "src/screens/auth/SplashScreen";
 
@@ -16,7 +27,10 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
 export const db = getFirestore(app);
 export default function App() {
   const Stack = createNativeStackNavigator();

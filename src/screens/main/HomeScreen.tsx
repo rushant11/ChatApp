@@ -5,14 +5,16 @@ import { CustomHeader } from "@components";
 import { useNavigation } from "@react-navigation/native";
 import { OuterChatList } from "src/components/OuterChatList";
 import { auth } from "App";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useStore } from "src/zustand/useStore";
 
 export const HomeScreen = () => {
   const navigation = useNavigation();
+  const { userEmail, setUserEmail, setRandomColor } = useStore();
+  console.log("🚀 ~ HomeScreen ~ userEmail:", userEmail);
 
   const handleSignout = () => {
     auth.signOut().then(async () => {
-      await AsyncStorage.removeItem("user");
+      setUserEmail(null);
       navigation.reset({
         index: 0,
         routes: [{ name: "Login" }],

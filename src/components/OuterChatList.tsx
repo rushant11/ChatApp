@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { Images } from "@Images";
-import { dynamicSize } from "@utils";
+import { dynamicSize, getFontSize } from "@utils";
 import { colors } from "@theme";
 import { Divider } from "./Divider";
 import { auth, db } from "App";
@@ -21,16 +21,19 @@ import {
   where,
 } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
+import { useStore } from "src/zustand/useStore";
 
 export const OuterChatList = () => {
   const navigation = useNavigation();
-
   const [chattedUsers, setChattedUsers] = useState([]);
-  console.log("🚀 ~ OuterChatList ~ chattedUsers:", chattedUsers);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
-  const [chattedUserName, setChattedUserName] = useState("");
-  console.log("🚀 ~ OuterChatList ~ chattedUserName:", chattedUserName);
-  const [lastMessage, setLastMessage] = useState("");
+  const {
+    randomColor,
+    messages,
+    setMessages,
+    setIsChatSelected,
+    isChatSelected,
+  } = useStore();
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
@@ -45,90 +48,104 @@ export const OuterChatList = () => {
   }, []);
 
   useLayoutEffect(() => {
+    if (!currentUserEmail) return;
+
     const q = query(
       collection(db, "chats"),
       where("participants", "array-contains", currentUserEmail),
       orderBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const participantsSet = new Set();
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+      const usersData = new Map();
 
-      querySnapshot.docs.forEach((doc, index) => {
+      for (const doc of querySnapshot.docs) {
         const data = doc.data();
-        console.log("🚀 ~ querySnapshot.docs.forEach ~ data:", data);
+        const participants = data.participants;
 
-        if (index == 0) {
-          const last_message = data.lastMessage;
-          setLastMessage(last_message);
-        }
-        if (index == 0) {
-          const participants = doc.data().participants;
-          const currentUserIndex = participants.indexOf(currentUserEmail);
-          const recipientEmail = participants[currentUserIndex === 0 ? 1 : 0];
-          const recipientQuery = query(
+        const recipientEmail = participants.find(
+          (email: string) => email !== currentUserEmail
+        );
+
+        if (recipientEmail) {
+          const userQuery = query(
             collection(db, "users"),
             where("email", "==", recipientEmail)
           );
-          onSnapshot(recipientQuery, (recipientSnapshot) => {
-            recipientSnapshot.docs.forEach((recipientDoc) => {
-              const recipientData = recipientDoc.data();
-              setChattedUserName(recipientData.username);
-            });
+          const userSnapshot = await getDocs(userQuery);
+          userSnapshot.forEach((userDoc) => {
+            const userData = userDoc.data();
+            const existingData = usersData.get(recipientEmail);
+
+            if (!existingData || data.createdAt > existingData.createdAt) {
+              usersData.set(recipientEmail, {
+                username: userData.username,
+                email: userData.email,
+                lastMessage: data.lastMessage,
+                createdAt: data.createdAt,
+              });
+            }
           });
         }
-
-        const participants = doc.data().participants;
-        participants.forEach((participant: any) => {
-          if (participant !== currentUserEmail) {
-            participantsSet.add(participant);
-          }
-        });
-      });
-      setChattedUsers([...participantsSet]);
+      }
+      setChattedUsers(Array.from(usersData.values()));
     });
 
     return () => unsubscribe();
-  }, [currentUserEmail, lastMessage]);
+  }, [currentUserEmail]);
 
   return (
     <FlatList
       data={chattedUsers}
       renderItem={({ item, index }) => {
+        console.log(
+          "🚀 ~ OuterChatList ~ item.lastmessage:",
+          item?.lastMessage
+        );
         return (
-          <>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("Chat", {
-                  username: chattedUserName,
-                  recipient_email: item,
-                })
-              }
-            >
-              <View key={index} style={styles.container}>
-                <View style={styles.innerContainer}>
-                  <Image source={Images.NullProfile} style={styles.image} />
-                  <View style={styles.space}>
-                    <Text style={{ fontSize: 16, fontWeight: "600" }}>
-                      {chattedUserName}
-                    </Text>
-                    <Text style={{ color: colors.PrimaryText }}>
-                      {lastMessage}
-                    </Text>
-                  </View>
-                </View>
+          <TouchableOpacity
+            onPress={() => {
+              setIsChatSelected(false);
+              navigation.navigate("Chat", {
+                username: item.username,
+                recipient_email: item.email,
+              });
+            }}
+          >
+            <View key={index} style={styles.container}>
+              <View style={styles.innerContainer}>
+                <Image
+                  source={{
+                    uri: `https://ui-avatars.com/api/?background=${
+                      randomColor?.[item?.email]
+                    }&color=FFF&name=${item?.username}`,
+                  }}
+                  style={styles.image}
+                />
                 <View style={styles.space}>
-                  <Text>{"2 min ago"}</Text>
-                  <View style={styles.secondaryContainer}>
-                    <Text style={{ fontSize: 12, color: colors.white }}>
-                      {"0"}
-                    </Text>
-                  </View>
+                  <Text style={{ fontSize: 16, fontWeight: "600" }}>
+                    {item?.username}
+                  </Text>
+                  <Text style={{ color: colors.PrimaryText }}>
+                    {item?.lastMessage}
+                  </Text>
                 </View>
               </View>
-              <Divider />
-            </TouchableOpacity>
-          </>
+              <View style={styles.space}>
+                <Text>{"2 min ago"}</Text>
+                {isChatSelected && (
+                  <View style={styles.secondaryContainer}>
+                    <Text
+                      style={{ fontSize: getFontSize(13), color: colors.white }}
+                    >
+                      {'0'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+            <Divider />
+          </TouchableOpacity>
         );
       }}
     />
@@ -146,19 +163,20 @@ const styles = StyleSheet.create({
   image: {
     height: dynamicSize(38),
     width: dynamicSize(38),
+    borderRadius: dynamicSize(38),
   },
   space: {
-    gap: 5,
+    gap: dynamicSize(5),
   },
   innerContainer: {
     flexDirection: "row",
     gap: dynamicSize(10),
   },
   secondaryContainer: {
-    height: dynamicSize(15),
-    width: dynamicSize(15),
+    height: dynamicSize(18),
+    width: dynamicSize(18),
+    borderRadius: dynamicSize(18),
     backgroundColor: colors.Primary,
-    borderRadius: dynamicSize(10),
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "flex-end",

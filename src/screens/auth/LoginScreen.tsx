@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Alert,
   StyleSheet,
@@ -13,11 +13,13 @@ import { dynamicSize, getFontSize } from "@utils";
 import { colors } from "@theme";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "App";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useStore } from "src/zustand/useStore";
 
 export const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const { setUserEmail } = useStore();
 
   const handleLoginUser = async () => {
     if (email && password) {
@@ -28,8 +30,9 @@ export const LoginScreen = ({ navigation }) => {
           password
         );
         const user = userCredential.user;
+        console.log("🚀 ~ handleLoginUser ~ user:", user);
         if (user) {
-          await AsyncStorage.setItem("user", user.uid);
+          setUserEmail(user.email);
           navigation.replace("Home");
         }
       } catch (error) {
