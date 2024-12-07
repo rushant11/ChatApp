@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import { CustomHeader } from "@components";
 import { dynamicSize } from "@utils";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
 import { auth, db } from "App";
 import {
@@ -17,21 +17,59 @@ import {
   query,
   where,
   getDocs,
+  updateDoc,
+  doc,
 } from "firebase/firestore";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { useStore } from "src/zustand/useStore";
+import { StatusBar } from "expo-status-bar";
 
 type ChatScreenRouteParams = {
   username: string;
   recipient_email: string;
 };
 
-export const ChatScreen = () => {
+export const ChatScreen = ({ navigation }) => {
   const route = useRoute<RouteProp<Record<string, ChatScreenRouteParams>>>();
   const { username, recipient_email } = route?.params;
-  const { messages, setMessages, setIsChatSelected } = useStore();
+  const { messages, setMessages, setIsChatSelected, userStatus } = useStore();
   const [userInfo, setUserInfo] = useState<any>({});
   console.log("🚀 ~ ChatScreen ~ messages:", messages);
+
+  useEffect(() => {
+    const markMessagesAsRead = async () => {
+      const q = query(
+        collection(db, "chats"),
+        where("recipient", "==", auth?.currentUser?.email),
+        where("sender", "==", recipient_email),
+        where("isRead", "==", false)
+      );
+
+      const unreadMessages = await getDocs(q);
+      for (const docSnapShot of unreadMessages.docs) {
+        const docRef = doc(db, "chats", docSnapShot.id);
+        await updateDoc(docRef, { isRead: true });
+      }
+    };
+
+    markMessagesAsRead();
+  }, [recipient_email]);
+
+  useEffect(() => {
+    // set email/userwise online offline status
+    const checkUserStatus = async () => {
+      if (userStatus === "online") {
+        await updateDoc(doc(db, "users", auth?.currentUser?.email), {
+          online: true,
+        });
+      } else {
+        await updateDoc(doc(db, "users", auth?.currentUser?.email), {
+          online: false,
+        });
+      }
+    };
+    checkUserStatus();
+  }, []);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -109,6 +147,8 @@ export const ChatScreen = () => {
         recipient: recipient_email,
         participants: [auth?.currentUser?.email, recipient_email],
         lastMessage: text,
+        isRead: false,
+        online: false,
       })
         .then(() => {
           console.log("Message sent successfully");
@@ -122,20 +162,45 @@ export const ChatScreen = () => {
   );
 
   return (
-    <View style={{ flex: 1, marginTop: dynamicSize(50), paddingBottom: 30 }}>
-      <CustomHeader headerName={username} />
-      <GiftedChat
-        messages={messages}
-        showAvatarForEveryMessage={true}
-        showUserAvatar={true}
-        listViewProps={{ showsVerticalScrollIndicator: false }}
-        placeholder="Send a message"
-        onSend={(messages) => onSend(messages)}
-        user={{
-          _id: auth?.currentUser?.email,
-          name: userInfo.username,
-        }}
+    <>
+      <StatusBar
+        animated={true}
+        style="dark"
+        translucent
+        backgroundColor="#FFFFFF"
       />
-    </View>
+      <View style={styles.main}>
+        <CustomHeader
+          headerName={username}
+          activeStatus={userStatus}
+          leftIcon
+          back
+          onPress={() => {
+            navigation.goBack();
+          }}
+        />
+        <GiftedChat
+          messages={messages}
+          showAvatarForEveryMessage={true}
+          showUserAvatar={true}
+          listViewProps={{ showsVerticalScrollIndicator: false }}
+          placeholder="Send a message"
+          onSend={(messages) => onSend(messages)}
+          user={{
+            _id: auth?.currentUser?.email,
+            name: userInfo.username,
+          }}
+        />
+      </View>
+    </>
   );
 };
+
+export const styles = StyleSheet.create({
+  main: {
+    flex: 1,
+    paddingTop: dynamicSize(50),
+    paddingBottom: 30,
+    backgroundColor: "#FFFFFF",
+  },
+});

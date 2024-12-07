@@ -1,10 +1,25 @@
 import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useStore } from "src/zustand/useStore";
+import { useAppState } from "@react-native-community/hooks";
 
 const SplashScreen = ({ navigation }) => {
-  const { userEmail } = useStore();
-  console.log("🚀 ~ HomeScreen ~ userEmail:", userEmail);
+  const { userEmail, setUserStatus } = useStore();
+
+  const currentAppState = useAppState();
+
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      if (currentAppState === "active") {
+        setUserStatus("online");
+      }
+      if (currentAppState === "background") {
+        setUserStatus("offline");
+      }
+    };
+
+    checkUserStatus();
+  }, [currentAppState]);
 
   useEffect(() => {
     setTimeout(() => {

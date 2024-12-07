@@ -1,6 +1,5 @@
 import React from "react";
-import { Add } from "@Icons";
-import { Images } from "@Images";
+import { Add, BackButton } from "@Icons";
 import { dynamicSize, getFontSize } from "@utils";
 import {
   Image,
@@ -11,29 +10,60 @@ import {
   ViewStyle,
 } from "react-native";
 import { Divider } from "@components";
+import { useStore } from "@zustand";
 
 type headerProps = {
   onPress?: () => void;
   style?: ViewStyle;
   headerName?: string;
   leftIcon?: boolean;
+  back?: boolean;
+  activeStatus?: string;
 };
 
 export const CustomHeader = (props: headerProps) => {
+  const { currentUsername, userEmail, randomColor } = useStore();
+
   return (
     <>
       <View style={[styles.container, props.style]}>
-        <TouchableOpacity onPress={props.onPress}>
-          {props.leftIcon ? <Add /> : null}
-        </TouchableOpacity>
-        <Text style={styles.headerText}>{props.headerName}</Text>
-        <Image source={Images.NullProfile} style={styles.image} />
+        <View style={styles.iconContainer}>
+          {props.leftIcon && (
+            <TouchableOpacity onPress={props.onPress}>
+              {props.back ? <BackButton /> : <Add />}
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerText}>{props.headerName}</Text>
+          {props.activeStatus && (
+            <Text
+              style={[
+                styles.headerText,
+                {
+                  fontSize: getFontSize(14),
+                  color: "green",
+                  fontWeight: "600",
+                },
+              ]}
+            >
+              {props.activeStatus}
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.iconContainer}>
+          <Image
+            source={{
+              uri: `https://ui-avatars.com/api/?background=${randomColor?.[userEmail]}&color=FFF&name=${currentUsername}`,
+            }}
+            style={styles.image}
+          />
+        </View>
       </View>
-      <Divider
-        style={{
-          marginTop: dynamicSize(15),
-        }}
-      />
+
+      <Divider style={styles.divider} />
     </>
   );
 };
@@ -41,18 +71,31 @@ export const CustomHeader = (props: headerProps) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: dynamicSize(15),
+    backgroundColor: "#FFFFFF",
+  },
+  iconContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTextContainer: {
+    flex: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
-    height: dynamicSize(34),
-    width: dynamicSize(34),
+    height: dynamicSize(36),
+    width: dynamicSize(36),
+    borderRadius: dynamicSize(36),
   },
   headerText: {
-    fontSize: getFontSize(18),
     fontWeight: "bold",
-    alignSelf: "center",
+    fontSize: getFontSize(18),
     textAlign: "center",
+  },
+  divider: {
+    marginTop: dynamicSize(15),
   },
 });

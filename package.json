@@ -11,6 +11,7 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-native-community/cli-platform-ios": "^15.1.2",
+    "@react-native-community/hooks": "^2.8.0",
     "@react-navigation/native": "^7.0.9",
     "@react-navigation/native-stack": "^7.1.10",
     "expo": "~52.0.11",

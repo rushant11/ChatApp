@@ -6,11 +6,11 @@ import { useNavigation } from "@react-navigation/native";
 import { OuterChatList } from "src/components/OuterChatList";
 import { auth } from "App";
 import { useStore } from "src/zustand/useStore";
+import { dynamicSize } from "@utils";
 
 export const HomeScreen = () => {
   const navigation = useNavigation();
-  const { userEmail, setUserEmail, setRandomColor } = useStore();
-  console.log("🚀 ~ HomeScreen ~ userEmail:", userEmail);
+  const { setUserEmail } = useStore();
 
   const handleSignout = () => {
     auth.signOut().then(async () => {
@@ -24,7 +24,7 @@ export const HomeScreen = () => {
 
   return (
     <>
-      <StatusBar backgroundColor={"white"} style="dark" />
+      <StatusBar backgroundColor={"#FFFFFF"} style="dark" />
       <View style={styles.main}>
         <CustomHeader
           onPress={() => navigation.navigate("AddUser")}
@@ -32,14 +32,14 @@ export const HomeScreen = () => {
           leftIcon={true}
         />
         <OuterChatList />
+        <TouchableOpacity
+          onPress={handleSignout}
+          activeOpacity={0.5}
+          style={styles.button}
+        >
+          <Text style={styles.logoutTxt}>Logout</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        onPress={handleSignout}
-        activeOpacity={0.5}
-        style={styles.button}
-      >
-        <Text style={styles.logoutTxt}>Logout</Text>
-      </TouchableOpacity>
     </>
   );
 };
@@ -47,15 +47,16 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   main: {
     flex: 1,
-    marginTop: 50,
+    paddingTop: dynamicSize(45),
+    backgroundColor: "#FFFFFF",
   },
   button: {
-    alignSelf: "center",
-    bottom: 35,
+    bottom: dynamicSize(25),
     backgroundColor: "red",
     paddingVertical: 10,
     paddingHorizontal: 25,
     borderRadius: 10,
+    alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
   },

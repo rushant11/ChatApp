@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Images } from "@Images";
 import { dynamicSize, getFontSize } from "@utils";
 import { colors } from "@theme";
 import { Divider } from "./Divider";
@@ -27,13 +26,8 @@ export const OuterChatList = () => {
   const navigation = useNavigation();
   const [chattedUsers, setChattedUsers] = useState([]);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
-  const {
-    randomColor,
-    messages,
-    setMessages,
-    setIsChatSelected,
-    isChatSelected,
-  } = useStore();
+  const { randomColor, setIsChatSelected, isChatSelected } = useStore();
+  const [receiverEmail, setReceiverEmail] = useState("");
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
@@ -61,12 +55,12 @@ export const OuterChatList = () => {
 
       for (const doc of querySnapshot.docs) {
         const data = doc.data();
-        console.log("🚀 ~ unsubscribe ~ data:", data);
         const participants = data.participants;
 
         const recipientEmail = participants.find(
           (email: string) => email !== currentUserEmail
         );
+        setReceiverEmail(recipientEmail);
 
         if (recipientEmail) {
           const userQuery = query(
@@ -78,12 +72,25 @@ export const OuterChatList = () => {
             const userData = userDoc.data();
             const existingData = usersData.get(recipientEmail);
 
+            const unreadMessages = querySnapshot.docs.filter((msgDoc) => {
+              return (
+                msgDoc.data().recipient === currentUserEmail &&
+                msgDoc.data().sender === recipientEmail &&
+                !msgDoc.data().isRead
+              );
+            }).length;
+            console.log(
+              "🚀 ~ userSnapshot.forEach ~ unreadMessages:",
+              unreadMessages
+            );
+
             if (!existingData || data.createdAt > existingData.createdAt) {
               usersData.set(recipientEmail, {
                 username: userData.username,
                 email: userData.email,
                 lastMessage: data.lastMessage,
                 createdAt: data.createdAt,
+                unreadCount: unreadMessages,
               });
             }
           });
@@ -95,9 +102,28 @@ export const OuterChatList = () => {
     return () => unsubscribe();
   }, [currentUserEmail]);
 
+  const formatTimeAgo = (timestamp: any) => {
+    const secondsAgo = Math.floor((Date.now() - timestamp * 1000) / 1000);
+    if (secondsAgo <= 1) {
+      return "Just now";
+    } else if (secondsAgo < 60) {
+      return `${secondsAgo} sec${secondsAgo !== 1 ? "s" : ""} ago`;
+    } else if (secondsAgo < 3600) {
+      const minutesAgo = Math.floor(secondsAgo / 60);
+      return `${minutesAgo} min${minutesAgo !== 1 ? "s" : ""} ago`;
+    } else if (secondsAgo < 86400) {
+      const hoursAgo = Math.floor(secondsAgo / 3600);
+      return `${hoursAgo} hour${hoursAgo !== 1 ? "s" : ""} ago`;
+    } else {
+      const daysAgo = Math.floor(secondsAgo / 86400);
+      return `${daysAgo} day${daysAgo !== 1 ? "s" : ""} ago`;
+    }
+  };
+
   return (
     <FlatList
       data={chattedUsers}
+      keyExtractor={(_, index) => index.toString()}
       renderItem={({ item, index }) => {
         return (
           <TouchableOpacity
@@ -129,11 +155,18 @@ export const OuterChatList = () => {
                 </View>
               </View>
               <View style={styles.space}>
-                <Text>{"2 min ago"}</Text>
-                {isChatSelected && (
+                <Text>
+                  {item?.createdAt?.seconds
+                    ? formatTimeAgo(item?.createdAt?.seconds)
+                    : "Just now"}
+                </Text>
+                {item?.unreadCount > 0 && (
                   <View style={styles.secondaryContainer}>
                     <Text
-                      style={{ fontSize: getFontSize(13), color: colors.white }}
+                      style={{
+                        fontSize: getFontSize(13),
+                        color: colors.white,
+                      }}
                     >
                       {item?.unreadCount}
                     </Text>
@@ -156,6 +189,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: dynamicSize(15),
     paddingVertical: dynamicSize(20),
+    backgroundColor: "#FFFFFF",
   },
   image: {
     height: dynamicSize(38),

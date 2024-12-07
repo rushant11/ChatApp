@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   StyleSheet,
@@ -12,14 +12,30 @@ import { ImageBackground } from "@components";
 import { dynamicSize, getFontSize } from "@utils";
 import { colors } from "@theme";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "App";
+import { auth, db } from "App";
 import { useStore } from "src/zustand/useStore";
+import { collection, getDocs } from "firebase/firestore";
 
 export const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { setUserEmail } = useStore();
+  const { setUserEmail, setCurrentUsername } = useStore();
+
+  useEffect(() => {
+    getFireStoreUser();
+  });
+
+  const getFireStoreUser = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      querySnapshot.forEach((doc) => {
+        setCurrentUsername(doc.data().username);
+      });
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+  };
 
   const handleLoginUser = async () => {
     if (email && password) {
