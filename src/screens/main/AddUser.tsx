@@ -1,30 +1,32 @@
 import React from "react";
 import { ContactsList, CustomHeader } from "@components";
-import { dynamicSize } from "@utils";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
+import {  StyleSheet, View } from "react-native";
 
 export const AddUser = ({ navigation }) => {
   return (
     <>
       <StatusBar backgroundColor={"#FFFFFF"} style="dark" />
-      <View
-        style={{
-          flex: 1,
-          paddingTop: dynamicSize(45),
-          backgroundColor: "#FFFFFF",
-        }}
-      >
-        <CustomHeader
-          headerName="Contacts"
-          leftIcon={true}
-          back={true}
-          onPress={() => {
-            navigation.goBack();
-          }}
-        />
-        <ContactsList />
-      </View>
+      {/* <SafeAreaView style={styles.main}> */}
+        <View style={styles.main}>
+          <CustomHeader
+            headerName="Contacts"
+            leftIcon={true}
+            back={true}
+            onPress={() => {
+              navigation.goBack();
+            }}
+          />
+          <ContactsList />
+        </View>
+      {/* </SafeAreaView> */}
     </>
   );
 };
+
+export const styles = StyleSheet.create({
+  main: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+});

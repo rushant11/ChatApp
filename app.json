@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ChatApp",
-    "slug": "ChatApp",
+    "name": "Chatter",
+    "slug": "Chatter",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,22 +23,16 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.priyankapp1308.ChatApp",
-      "googleServicesFile": "./android/app/google-services.json"
+      "googleServicesFile": "./firebase/google-services.json"
     },
-    // "plugins": [
-    //   "@react-native-firebase/app",
-    //   "@react-native-firebase/auth",
-    //   [
-    //     "expo-build-properties",
-    //     {
-    //       "ios": {
-    //         "useFrameworks": "static"
-    //       }
-    //     }
-    //   ]
-    // ],
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "owner": "rushant11",
+    "extra": {
+      "eas": {
+        "projectId": "c08cdfed-1aae-417b-89d1-295db6281282"
+      }
     }
   }
 }

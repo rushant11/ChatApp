@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import { CustomHeader } from "@components";
 import { dynamicSize } from "@utils";
-import { StyleSheet, View } from "react-native";
+import { SafeAreaView, StyleSheet, View } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
 import { auth, db } from "App";
 import {
@@ -169,29 +169,31 @@ export const ChatScreen = ({ navigation }) => {
         translucent
         backgroundColor="#FFFFFF"
       />
-      <View style={styles.main}>
-        <CustomHeader
-          headerName={username}
-          activeStatus={userStatus}
-          leftIcon
-          back
-          onPress={() => {
-            navigation.goBack();
-          }}
-        />
-        <GiftedChat
-          messages={messages}
-          showAvatarForEveryMessage={true}
-          showUserAvatar={true}
-          listViewProps={{ showsVerticalScrollIndicator: false }}
-          placeholder="Send a message"
-          onSend={(messages) => onSend(messages)}
-          user={{
-            _id: auth?.currentUser?.email,
-            name: userInfo.username,
-          }}
-        />
-      </View>
+      <SafeAreaView style={{flex: 1}}>
+        <View style={styles.main}>
+          <CustomHeader
+            headerName={username}
+            activeStatus={userStatus}
+            leftIcon
+            back
+            onPress={() => {
+              navigation.goBack();
+            }}
+          />
+          <GiftedChat
+            messages={messages}
+            showAvatarForEveryMessage={true}
+            showUserAvatar={true}
+            listViewProps={{ showsVerticalScrollIndicator: false }}
+            placeholder="Send a message"
+            onSend={(messages) => onSend(messages)}
+            user={{
+              _id: auth?.currentUser?.email,
+              name: userInfo.username,
+            }}
+          />
+        </View>
+      </SafeAreaView>
     </>
   );
 };
@@ -199,8 +201,6 @@ export const ChatScreen = ({ navigation }) => {
 export const styles = StyleSheet.create({
   main: {
     flex: 1,
-    paddingTop: dynamicSize(50),
-    paddingBottom: 30,
     backgroundColor: "#FFFFFF",
   },
 });

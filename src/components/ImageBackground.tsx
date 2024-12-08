@@ -1,5 +1,5 @@
 import React from "react";
-import { Images } from "@Images";
+import { Images } from "src/assets/Images";
 import { Image, StyleSheet } from "react-native";
 
 export const ImageBackground = () => {
