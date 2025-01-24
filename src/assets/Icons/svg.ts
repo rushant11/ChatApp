@@ -1,4 +1,4 @@
-import Mail from "../Icons/Mail.svg";
+import Mail from "../Icons/mail.svg";
 import Add from "../Icons/Button.svg";
 import BackButton from "../Icons/BackButton.svg";
 

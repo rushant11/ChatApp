@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,6 +14,7 @@ import { OuterChatList } from "src/components/OuterChatList";
 import { auth } from "App";
 import { useStore } from "src/zustand/useStore";
 import { dynamicSize } from "@utils";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export const HomeScreen = () => {
   const navigation = useNavigation();
@@ -33,7 +33,7 @@ export const HomeScreen = () => {
   return (
     <>
       <StatusBar backgroundColor={"#FFFFFF"} style="dark" />
-      {/* <SafeAreaView style={styles.safeArea}> */}
+      <SafeAreaView edges={["top"]} style={styles.safeArea}>
         <View style={styles.main}>
           <View style={styles.headerContainer}>
             <CustomHeader
@@ -53,7 +53,7 @@ export const HomeScreen = () => {
             <Text style={styles.logoutTxt}>Logout</Text>
           </TouchableOpacity>
         </View>
-      {/* </SafeAreaView> */}
+      </SafeAreaView>
     </>
   );
 };
@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#FFFFFF",
+    paddingTop: dynamicSize(8),
   },
   main: {
     flex: 1,

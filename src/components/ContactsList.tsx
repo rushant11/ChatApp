@@ -7,17 +7,23 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { dynamicSize } from "@utils";
+import { dynamicSize, getFontSize } from "@utils";
 import { colors } from "@theme";
 import { Divider } from "./Divider";
 import { auth, db } from "App";
 import { collection, getDocs } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
 import { useStore } from "src/zustand/useStore";
+import { Images } from "@Images";
 
 export const ContactsList = () => {
   const navigation = useNavigation();
   const [otherUserInfo, setOtherUserInfo] = useState<any>({});
+  console.log(
+    "'🚀'🚀'🚀 ~ file: ContactsList.tsx:22 ~ ContactsList ~ otherUserInfo:👉 ",
+    otherUserInfo
+  );
+
   const { randomColor, setRandomColor } = useStore();
 
   useEffect(() => {
@@ -57,6 +63,22 @@ export const ContactsList = () => {
     fetchData();
   }, []);
 
+  const [requestedUser, setRequestedUsers] = useState([]);
+  console.log(
+    "'🚀'🚀'🚀 ~ file: ContactsList.tsx:67 ~ ContactsList ~ requestedUser:👉 ",
+    requestedUser
+  );
+
+  const handleSendRequest = async (item: any) => {
+    if (requestedUser.includes(item.email)) {
+      setRequestedUsers((prev) =>
+        prev.filter((user) => user.email === item?.email)
+      );
+    } else {
+      setRequestedUsers((prev) => [...prev, item?.email]);
+    }
+  };
+
   return (
     <FlatList
       data={otherUserInfo}
@@ -64,6 +86,8 @@ export const ContactsList = () => {
         const sortedContacts = [...otherUserInfo].sort((a, b) => {
           return a.username.localeCompare(b.username);
         });
+
+        const isRequestSent = requestedUser.includes(item.email);
 
         return (
           <>
@@ -74,26 +98,49 @@ export const ContactsList = () => {
                   recipient_email: sortedContacts[index].email,
                 });
               }}
+              key={index}
+              style={styles.container}
             >
-              <View key={index} style={styles.container}>
-                <View style={styles.innerContainer}>
-                  <Image
-                    source={{
-                      uri: `https://ui-avatars.com/api/?background=${item.randomColor}&color=FFF&name=${item?.username}`,
-                    }}
-                    style={styles.image}
-                  />
-                  <View style={styles.space}>
-                    <Text>{sortedContacts[index].username}</Text>
-                    <Text style={{ color: colors.PrimaryGrey }}>
-                      {"Last seen recently"}
-                    </Text>
-                  </View>
+              <View style={styles.innerContainer}>
+                <Image
+                  source={{
+                    uri: `https://ui-avatars.com/api/?background=${item.randomColor}&color=FFF&name=${item?.username}`,
+                  }}
+                  style={styles.image}
+                />
+                <View style={styles.space}>
+                  <Text>{sortedContacts[index].username}</Text>
+                  <Text style={{ color: colors.PrimaryGrey }}>
+                    {isRequestSent
+                      ? "You have sent a request"
+                      : "Send request to message"}
+                  </Text>
                 </View>
-                <Text style={{ color: colors.PrimaryText }}>{"Message"}</Text>
               </View>
-              <Divider />
+
+              {isRequestSent ? (
+                <Text
+                  style={{
+                    fontSize: getFontSize(14),
+                    color: colors.PrimaryText,
+                  }}
+                >
+                  Request Sent
+                </Text>
+              ) : (
+                <TouchableOpacity
+                  activeOpacity={0.5}
+                  style={styles.sendButtonStyle}
+                  onPress={() => handleSendRequest(item)}
+                >
+                  <Text style={{ fontSize: getFontSize(14), color: "black" }}>
+                    {"Send Request"}
+                  </Text>
+                  <Image source={Images.Request} style={styles.friendImage} />
+                </TouchableOpacity>
+              )}
             </TouchableOpacity>
+            <Divider />
           </>
         );
       }}
@@ -130,4 +177,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignSelf: "flex-end",
   },
+  sendButtonStyle: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: dynamicSize(5),
+    backgroundColor: colors.Primary,
+    borderRadius: dynamicSize(5),
+    padding: dynamicSize(5),
+  },
+  friendImage: { height: dynamicSize(20), width: dynamicSize(20) },
 });

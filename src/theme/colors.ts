@@ -3,5 +3,5 @@ export const colors = {
   Primary: "#FF9134",
   PrimaryText: "#FF9134",
   PrimaryInput: "#F6F7FB",
-  PrimaryGrey: 'darkgrey',
+  PrimaryGrey: "darkgrey",
 };

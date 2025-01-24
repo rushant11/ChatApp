@@ -5,7 +5,6 @@ import React, {
   useState,
 } from "react";
 import { CustomHeader } from "@components";
-import { dynamicSize } from "@utils";
 import { SafeAreaView, StyleSheet, View } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
 import { auth, db } from "App";
@@ -23,6 +22,7 @@ import {
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { useStore } from "src/zustand/useStore";
 import { StatusBar } from "expo-status-bar";
+import { colors } from "@theme";
 
 type ChatScreenRouteParams = {
   username: string;
@@ -169,7 +169,7 @@ export const ChatScreen = ({ navigation }) => {
         translucent
         backgroundColor="#FFFFFF"
       />
-      <SafeAreaView style={{flex: 1}}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
         <View style={styles.main}>
           <CustomHeader
             headerName={username}

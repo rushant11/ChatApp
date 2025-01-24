@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useStore } from "src/zustand/useStore";
 import { useAppState } from "@react-native-community/hooks";
+import { doc, updateDoc } from "firebase/firestore";
+import { auth, db } from "App";
 
 const SplashScreen = ({ navigation }) => {
   const { userEmail, setUserStatus } = useStore();
@@ -9,16 +11,16 @@ const SplashScreen = ({ navigation }) => {
   const currentAppState = useAppState();
 
   useEffect(() => {
-    const checkUserStatus = async () => {
+    const updateRecipientStatus = async () => {
+      const userDocRef = doc(db, "users", auth?.currentUser?.email);
       if (currentAppState === "active") {
-        setUserStatus("online");
-      }
-      if (currentAppState === "background") {
-        setUserStatus("offline");
+        await updateDoc(userDocRef, { online: true });
+      } else if (currentAppState === "background") {
+        await updateDoc(userDocRef, { online: false });
       }
     };
 
-    checkUserStatus();
+    updateRecipientStatus();
   }, [currentAppState]);
 
   useEffect(() => {
