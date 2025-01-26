@@ -11,17 +11,21 @@ import {
 } from "react-native";
 import { Divider } from "@components";
 import { useStore } from "@zustand";
+import { Images } from "@Images";
+import { useNavigation } from "@react-navigation/native";
 
 type headerProps = {
-  onPress?: () => void;
-  style?: ViewStyle;
-  headerName?: string;
-  leftIcon?: boolean;
   back?: boolean;
+  style?: ViewStyle;
+  leftIcon?: boolean;
+  headerName?: string;
+  onPress?: () => void;
   activeStatus?: string;
+  friendRequest?: boolean;
 };
 
 export const CustomHeader = (props: headerProps) => {
+  const navigation = useNavigation();
   const { currentUsername, userEmail, randomColor } = useStore();
 
   return (
@@ -53,12 +57,33 @@ export const CustomHeader = (props: headerProps) => {
           )}
         </View>
 
-        <View style={styles.iconContainer}>
+        <View
+          style={[
+            styles.iconContainer,
+            {
+              // paddingHorizontal: dynamicSize(20),
+              right: dynamicSize(20),
+            },
+          ]}
+        >
+          {props.friendRequest && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ManageRequests")}
+            >
+              <Image
+                source={Images.add_users}
+                style={{ height: dynamicSize(22), width: dynamicSize(22) }}
+              />
+            </TouchableOpacity>
+          )}
           <Image
             source={{
               uri: `https://ui-avatars.com/api/?background=${randomColor?.[userEmail]}&color=FFF&name=${currentUsername}`,
             }}
-            style={styles.image}
+            style={[
+              styles.image,
+              { left: !props.friendRequest && dynamicSize(20) },
+            ]}
           />
         </View>
       </View>
@@ -72,18 +97,21 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: dynamicSize(15),
     backgroundColor: "#FFFFFF",
+    paddingTop: dynamicSize(10),
+    paddingHorizontal: dynamicSize(20),
   },
   iconContainer: {
     flex: 1,
-    justifyContent: "center",
+    flexDirection: "row",
     alignItems: "center",
+    gap: dynamicSize(15),
+    justifyContent: "center",
   },
   headerTextContainer: {
     flex: 8,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
   image: {
     height: dynamicSize(36),

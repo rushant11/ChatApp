@@ -20,17 +20,19 @@ export const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { setUserEmail, setCurrentUsername } = useStore();
+  const { setUserEmail, setCurrentUsername, currentUsername } = useStore();
+  console.log(
+    "'🚀'🚀'🚀 ~ file: LoginScreen.tsx:24 ~ LoginScreen ~ currentUsername:👉 ",
+    currentUsername
+  );
 
-  useEffect(() => {
-    getFireStoreUser();
-  });
-
-  const getFireStoreUser = async () => {
+  const getFireStoreUser = async (email) => {
     try {
       const querySnapshot = await getDocs(collection(db, "users"));
       querySnapshot.forEach((doc) => {
-        setCurrentUsername(doc.data().username);
+        if (doc.data().email === email) {
+          setCurrentUsername(doc.data().username);
+        }
       });
     } catch (e) {
       console.error("Error adding document: ", e);
@@ -50,6 +52,7 @@ export const LoginScreen = ({ navigation }) => {
         if (user) {
           setUserEmail(user.email);
           navigation.replace("Home");
+          getFireStoreUser(user.email);
         }
       } catch (error) {
         console.error("Login error:", error);
