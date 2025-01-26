@@ -16,6 +16,7 @@ import {
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import SplashScreen from "src/screens/auth/SplashScreen";
+import Managerequests from "src/screens/main/Managerequests";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBEcW07iVen1D78xpyc3pP54m0A1bYOjwo",
@@ -47,6 +48,7 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="AddUser" component={AddUser} />
+        <Stack.Screen name="ManageRequests" component={Managerequests} />
       </Stack.Navigator>
     </NavigationContainer>
   );

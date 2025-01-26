@@ -1,30 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Text,
+  Image,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
 } from "react-native";
-import { dynamicSize, getFontSize } from "@utils";
+import { auth, db } from "App";
 import { colors } from "@theme";
 import { Divider } from "./Divider";
-import { auth, db } from "App";
-import { collection, getDocs } from "firebase/firestore";
-import { useNavigation } from "@react-navigation/native";
-import { useStore } from "src/zustand/useStore";
+import { dynamicSize, getFontSize } from "@utils";
+import { addDoc, collection, getDocs, onSnapshot } from "firebase/firestore";
 import { Images } from "@Images";
+import { useStore } from "src/zustand/useStore";
+import { useNavigation } from "@react-navigation/native";
 
 export const ContactsList = () => {
   const navigation = useNavigation();
-  const [otherUserInfo, setOtherUserInfo] = useState<any>({});
-  console.log(
-    "'🚀'🚀'🚀 ~ file: ContactsList.tsx:22 ~ ContactsList ~ otherUserInfo:👉 ",
-    otherUserInfo
-  );
-
-  const { randomColor, setRandomColor } = useStore();
+  const [otherUserInfo, setOtherUserInfo] = useState<any>([]);
+  const { requests, setRequests, requestedUser, setRequestedUser } = useStore();
+  const { randomColor, setRandomColor, currentUsername, removeRequestedUser } =
+    useStore();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,7 +29,6 @@ export const ContactsList = () => {
         const querySnapshot = await getDocs(collection(db, "users"));
         const usersData = [];
         const newEmailToColorMap = { ...randomColor };
-        console.log("🚀 ~ fetchData ~ newEmailToColorMap:", newEmailToColorMap);
 
         querySnapshot.forEach((doc) => {
           const userData = doc.data();
@@ -55,52 +51,107 @@ export const ContactsList = () => {
           (user) => user.email !== auth?.currentUser?.email
         );
         setRandomColor(newEmailToColorMap);
-        setOtherUserInfo(otherUsers);
+        setOtherUserInfo(
+          otherUsers.sort((a, b) => b.username.localeCompare(a.username))
+        );
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
+
     fetchData();
   }, []);
 
-  const [requestedUser, setRequestedUsers] = useState([]);
-  console.log(
-    "'🚀'🚀'🚀 ~ file: ContactsList.tsx:67 ~ ContactsList ~ requestedUser:👉 ",
-    requestedUser
-  );
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "requests"), (snapshot) => {
+      const allRequests = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-  const handleSendRequest = async (item: any) => {
-    if (requestedUser.includes(item.email)) {
-      setRequestedUsers((prev) =>
-        prev.filter((user) => user.email === item?.email)
+      const pendingRequests = allRequests.filter(
+        (req) =>
+          req.status === "pending" && req.sender === auth.currentUser.email
       );
-    } else {
-      setRequestedUsers((prev) => [...prev, item?.email]);
-    }
+      const acceptedRequests = allRequests.filter(
+        (req) =>
+          req.status === "accepted" &&
+          (req.sender === auth.currentUser.email ||
+            req.receiver === auth.currentUser.email)
+      );
+      const rejectedRequests = allRequests.filter(
+        (req) =>
+          req.status === "rejected" && req.receiver === auth.currentUser.email
+      );
+
+      // Update states
+      setRequests([...pendingRequests, ...acceptedRequests]);
+
+      // Remove rejected users from the `requestedUser` state
+      rejectedRequests.forEach((req) => {
+        removeRequestedUser(req.sender);
+        setRequestedUser((prevRequested) =>
+          prevRequested.filter((email) => email !== req.sender)
+        );
+      });
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const isRequestAccepted = (item) => {
+    return requests?.some(
+      (req) =>
+        ((req?.sender === auth?.currentUser?.email &&
+          req?.receiver === item?.email) ||
+          (req?.receiver === auth?.currentUser?.email &&
+            req?.sender === item?.email)) &&
+        req?.status === "accepted"
+    );
   };
+
+  const isRequestPending = (item) => {
+    return requests.some(
+      (req) =>
+        req.sender === auth.currentUser.email &&
+        req.receiver === item.email &&
+        req.status === "pending"
+    );
+  };
+
+  const handleSendRequest = useCallback(
+    async (item) => {
+      try {
+        if (!requestedUser.includes(item.email)) {
+          await addDoc(collection(db, "requests"), {
+            currentUsername,
+            sender: auth.currentUser.email,
+            receiver: item.email,
+            status: "pending",
+          });
+
+          setRequestedUser((prevRequested) => [...prevRequested, item.email]);
+        } else {
+          console.log("Request already sent");
+        }
+      } catch (error) {
+        console.error("Error sending request:", error);
+      }
+    },
+    [requestedUser, currentUsername]
+  );
 
   return (
     <FlatList
       data={otherUserInfo}
-      renderItem={({ item, index }) => {
-        const sortedContacts = [...otherUserInfo].sort((a, b) => {
-          return a.username.localeCompare(b.username);
-        });
-
-        const isRequestSent = requestedUser.includes(item.email);
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => {
+        const isAccepted = isRequestAccepted(item);
+        const isPending = isRequestPending(item);
 
         return (
           <>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate("Chat", {
-                  username: sortedContacts[index].username,
-                  recipient_email: sortedContacts[index].email,
-                });
-              }}
-              key={index}
-              style={styles.container}
-            >
+            <TouchableOpacity activeOpacity={1} style={styles.container}>
               <View style={styles.innerContainer}>
                 <Image
                   source={{
@@ -109,33 +160,37 @@ export const ContactsList = () => {
                   style={styles.image}
                 />
                 <View style={styles.space}>
-                  <Text>{sortedContacts[index].username}</Text>
+                  <Text>{item.username}</Text>
                   <Text style={{ color: colors.PrimaryGrey }}>
-                    {isRequestSent
-                      ? "You have sent a request"
-                      : "Send request to message"}
+                    {isAccepted
+                      ? "You can now message this user"
+                      : isPending
+                        ? "You have sent a request"
+                        : "Send request to message"}
                   </Text>
                 </View>
               </View>
 
-              {isRequestSent ? (
+              {isAccepted ? (
                 <Text
-                  style={{
-                    fontSize: getFontSize(14),
-                    color: colors.PrimaryText,
+                  onPress={() => {
+                    navigation.navigate("Chat", {
+                      username: item.username,
+                      recipient_email: item.email,
+                    });
                   }}
+                  style={styles.messageButton}
                 >
-                  Request Sent
+                  Message
                 </Text>
+              ) : isPending ? (
+                <Text style={styles.requestSentText}>Request Sent</Text>
               ) : (
                 <TouchableOpacity
-                  activeOpacity={0.5}
                   style={styles.sendButtonStyle}
                   onPress={() => handleSendRequest(item)}
                 >
-                  <Text style={{ fontSize: getFontSize(14), color: "black" }}>
-                    {"Send Request"}
-                  </Text>
+                  <Text style={styles.sendButtonText}>Send Request</Text>
                   <Image source={Images.Request} style={styles.friendImage} />
                 </TouchableOpacity>
               )}
@@ -168,15 +223,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: dynamicSize(10),
   },
-  secondaryContainer: {
-    height: dynamicSize(15),
-    width: dynamicSize(15),
-    backgroundColor: colors.Primary,
-    borderRadius: dynamicSize(10),
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "flex-end",
-  },
   sendButtonStyle: {
     flexDirection: "row",
     alignItems: "center",
@@ -186,5 +232,19 @@ const styles = StyleSheet.create({
     borderRadius: dynamicSize(5),
     padding: dynamicSize(5),
   },
+  sendButtonText: {
+    fontSize: getFontSize(14),
+    color: "black",
+  },
   friendImage: { height: dynamicSize(20), width: dynamicSize(20) },
+  messageButton: {
+    alignSelf: "center",
+    fontSize: getFontSize(15),
+    color: colors.Primary,
+    fontWeight: "600",
+  },
+  requestSentText: {
+    fontSize: getFontSize(14),
+    color: colors.PrimaryText,
+  },
 });

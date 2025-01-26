@@ -38,22 +38,28 @@ export const ChatScreen = ({ navigation }) => {
 
   useEffect(() => {
     const markMessagesAsRead = async () => {
-      const q = query(
-        collection(db, "chats"),
-        where("recipient", "==", auth?.currentUser?.email),
-        where("sender", "==", recipient_email),
-        where("isRead", "==", false)
-      );
+      try {
+        const q = query(
+          collection(db, "chats"),
+          where("recipient", "==", auth?.currentUser?.email),
+          where("sender", "==", recipient_email),
+          where("isRead", "==", false)
+        );
 
-      const unreadMessages = await getDocs(q);
-      for (const docSnapShot of unreadMessages.docs) {
-        const docRef = doc(db, "chats", docSnapShot.id);
-        await updateDoc(docRef, { isRead: true });
+        const unreadMessages = await getDocs(q);
+        const batchPromises = unreadMessages.docs.map((docSnapShot) => {
+          const docRef = doc(db, "chats", docSnapShot.id);
+          return updateDoc(docRef, { isRead: true });
+        });
+
+        await Promise.all(batchPromises);
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
       }
     };
 
     markMessagesAsRead();
-  }, [recipient_email]);
+  }, [messages, recipient_email]);
 
   useEffect(() => {
     // set email/userwise online offline status

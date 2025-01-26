@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,6 +6,7 @@ import {
   View,
   Platform,
   StatusBar as RNStatusBar,
+  Image,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { CustomHeader } from "@components";
@@ -15,11 +16,19 @@ import { auth } from "App";
 import { useStore } from "src/zustand/useStore";
 import { dynamicSize } from "@utils";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Images } from "@Images";
+import { colors } from "@theme";
+import { LogoutConfirmationModal } from "src/components/ConfirmationPopup";
 
 export const HomeScreen = () => {
   const navigation = useNavigation();
-  const { setUserEmail } = useStore();
+  const { setUserEmail, currentUsername } = useStore();
+  console.log(
+    "'🚀'🚀'🚀 ~ file: HomeScreen.tsx:22 ~ HomeScreen ~ currentUsername:👉 ",
+    currentUsername
+  );
 
+  const [isModalVisible, setModalVisible] = useState(false);
   const handleSignout = () => {
     auth.signOut().then(async () => {
       setUserEmail(null);
@@ -29,6 +38,7 @@ export const HomeScreen = () => {
       });
     });
   };
+
 
   return (
     <>
@@ -40,20 +50,30 @@ export const HomeScreen = () => {
               onPress={() => navigation.navigate("AddUser")}
               headerName="Chats"
               leftIcon={true}
+              friendRequest
             />
           </View>
           <View style={styles.content}>
             <OuterChatList />
           </View>
+
           <TouchableOpacity
-            onPress={handleSignout}
-            activeOpacity={0.7}
-            style={styles.button}
+            activeOpacity={0.5}
+            onPress={() => setModalVisible(true)}
           >
-            <Text style={styles.logoutTxt}>Logout</Text>
+            <Image
+              source={Images.logout}
+              tintColor={colors.Primary}
+              style={styles.logoutButton}
+            />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
+      <LogoutConfirmationModal
+        onLogout={handleSignout}
+        isVisible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+      />
     </>
   );
 };
@@ -78,20 +98,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: dynamicSize(15),
     marginBottom: dynamicSize(20),
   },
-  button: {
-    marginBottom: dynamicSize(25),
-    backgroundColor: "red",
-    paddingVertical: dynamicSize(12),
-    paddingHorizontal: dynamicSize(25),
-    borderRadius: 10,
-    alignSelf: "center",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
+  logoutButton: {
+    position: "absolute",
+    right: dynamicSize(25),
+    width: dynamicSize(44),
+    bottom: dynamicSize(40),
+    height: dynamicSize(44),
   },
   logoutTxt: {
     color: "white",

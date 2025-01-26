@@ -6,7 +6,8 @@ import { doc, updateDoc } from "firebase/firestore";
 import { auth, db } from "App";
 
 const SplashScreen = ({ navigation }) => {
-  const { userEmail, setUserStatus } = useStore();
+  const { userEmail, setUserStatus, setRequestedUser, setRequests } =
+    useStore();
 
   const currentAppState = useAppState();
 
@@ -21,6 +22,8 @@ const SplashScreen = ({ navigation }) => {
     };
 
     updateRecipientStatus();
+    // setRequestedUser(null);
+    // setRequests(null);
   }, [currentAppState]);
 
   useEffect(() => {
@@ -38,7 +41,7 @@ const SplashScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.splashText}>ChatApp</Text>
+      <Text style={styles.splashText}>Chatter</Text>
     </View>
   );
 };
